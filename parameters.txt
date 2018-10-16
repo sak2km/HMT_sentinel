@@ -1,0 +1,2 @@
+function battery mission flight_time
+83%	48.0 %	100.0 %	40.79
