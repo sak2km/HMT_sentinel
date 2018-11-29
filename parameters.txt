@@ -1,2 +1,2 @@
-function battery mission flight_time
-83%	48.0 %	100.0 %	40.79
+function battery mission flight_time attacked_popup attacked damage_type history_stat 
+83%	51.48	100.0 %	96.85	False	True	other	Annual frequency: 10 occurences per year.Rate of immediate re-attack: 45%.Overall System Damage: 80%.Damage Breakdown: Navigation 50%, Guidance 10%

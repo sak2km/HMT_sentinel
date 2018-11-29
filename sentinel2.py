@@ -9,6 +9,7 @@ import os
 #Set up option parsing to get connection string
 import argparse 
 import time
+import random
 
 
 class Sentinel():
@@ -28,6 +29,12 @@ class Sentinel():
         parser.add_argument('--attack_coordinate', 
                            help="coordinate cyber attack will be conducted",
                            default='100000,10000')
+        parser.add_argument('--scenario_num', 
+                           help="scenario number for the experiment",
+                           default='1')
+        parser.add_argument('--flight_pattern', 
+                           help="scenario number for the experiment",
+                           default='0')
         args = parser.parse_args()
 
         self.connection_string = args.connect
@@ -35,12 +42,322 @@ class Sentinel():
         self.attack_time = int(args.attack_time)
         self.attack_altitude = int(args.attack_altitude)
         self.attack_coordinate = str(args.attack_coordinate).split(',')
+        self.scenario_num = int(args.scenario_num)
+        self.flight_pattern = int(args.flight_pattern)
 
         self.sitl = None
 
         self.original_mission_filename = 'scripts/original_mission.txt'
         self.original_mission_filename_save = 'scripts/original_mission.txt'
         self.alternate_mission_filename = 'scripts/alternate_mission.txt'
+        self.mission_progress = "Nan"
+
+        # mission location : open/shieded
+        # home location : near/distant
+        # target density: dense/sparse
+        # mission progress : high/low
+        # history: provided/not
+        # damage assement: local/global
+        # cyber attack: attack/no attack
+        # sentiner: allert/no
+        # UAV: 1/2
+        # battery : high/low
+
+        ### Experimental parameters, setting variables depending on scenario_num
+        # Custum battery level is used in the experiment #
+        self.battery_initial = 60
+        self.history = False
+        self.delay_attack = False
+        self.false_alarm = False
+        self.missed_detection = False
+        self.initial_progress = 0
+        self.damage_type = 'nav' # navigation, guidance, global (guidance + control), or other
+        # Starting point of the searching area. different from home
+        self.starting_loc = LocationGlobal(35.9836983,-95.8752409, 10)
+
+
+        # if self.scenario_num==2 or self.scenario_num==3 or self.scenario_num==3 or self.scenario_num==3 or \
+        # self.scenario_num==3 or self.scenario_num==3 :
+        #     self.battery_initial = 60
+
+
+        if self.scenario_num==1:
+             # mission location: open
+             # home location: near
+             # target density: dense
+             # mission progress: high
+             # hisotry : no
+             # damage assessment: local
+             # cyber attack: attack
+             # sentinel alert: True
+             # UAV: 1
+             # Battery: high
+            self.area_open = True
+            self.home_near = True
+            self.target_dense = True
+            self.initial_progress = 30 # to bring up mission_progress %. Assume 30 waypoints already completed
+            self.history = False
+            self.damage_type = 'nav'
+            self.attack = True
+            self.alert = True
+            self.num_uav = 1
+            self.battery_initial = 100
+
+        if self.scenario_num==2:
+             # mission location: open
+             # home location: distant
+             # target density: sparse
+             # mission progress: low
+             # hisotry : yes
+             # damage assessment: global
+             # cyber attack: attack
+             # sentinel alert: True
+             # UAV: 1
+             # Battery: high
+            self.area_open = True
+            self.home_near = False
+            self.target_dense = False
+            self.initial_progress = 0 
+            self.history = True
+            self.damage_type = 'global'
+            self.attack = True
+            self.alert = True
+            self.num_uav = 1
+            self.battery_initial = 100
+
+        if self.scenario_num==3:
+             # mission location: open
+             # home location: near
+             # target density: sparse
+             # mission progress: low
+             # hisotry : yes
+             # damage assessment: local
+             # cyber attack: No
+             # sentinel alert: No
+             # UAV: 1
+             # Battery: low
+            self.area_open = True
+            self.home_near = True
+            self.target_dense = False
+            self.initial_progress = 0
+            self.history = True
+            self.damage_type = 'nav'
+            self.attack = False
+            self.alert = False
+            self.num_uav = 1
+            self.battery_initial = 60
+
+        if self.scenario_num==4:
+             # mission location: open
+             # home location: distant
+             # target density: dense
+             # mission progress: low
+             # hisotry : no
+             # damage assessment: local
+             # cyber attack: No attack
+             # sentinel: No alert
+             # UAV: 2
+             # Battery: high
+            self.area_open = True
+            self.home_near = False
+            self.target_dense = True
+            self.initial_progress = 0
+            self.history = False
+            self.damage_type = 'guidance'
+            self.attack = False
+            self.alert = False
+            self.num_uav = 2
+            self.battery_initial = 100
+
+        if self.scenario_num==5:
+             ## mission location: open
+             # home location: distant
+             # target density: dense
+             # mission progress: high
+             # hisotry : yes
+             ## damage assessment: global
+             # cyber attack: attack
+             # sentinel: No alert
+             # UAV: 2
+             # Battery: low
+            self.area_open = True
+            self.home_near = False
+            self.target_dense = True
+            self.initial_progress = 30 # to bring up mission_progress %. Assume 30 waypoints already completed
+            self.history = True
+            self.damage_type = 'global'
+            self.attack = True
+            self.alert = False
+            self.num_uav = 2
+            self.battery_initial = 60
+
+        if self.scenario_num==6:
+             # mission location: open
+             # home location: near
+             # target density: sparse
+             # mission progress: high
+             # hisotry : no
+             # damage assessment: global
+             # cyber attack: no attack
+             # sentinel: alert
+             # UAV: 2
+             # Battery: low
+            self.area_open = True
+            self.home_near = True
+            self.target_dense = False
+            self.initial_progress = 30
+            self.history = False
+            self.damage_type = 'global'
+            self.attack = False
+            self.alert = True
+            self.num_uav = 2
+            self.battery_initial = 60
+
+        if self.scenario_num==7:
+             ### mission location: shieled
+             ## home location: near
+             # target density: dense
+             # mission progress: high
+             ## hisotry : yes
+             ### damage assessment: global
+             # cyber attack: no attack
+             ## sentinel: No alert
+             # UAV: 1
+             # Battery: high
+            self.area_open = False
+            self.home_near = True
+            self.target_dense = True
+            self.initial_progress = 30 # to bring up mission_progress %. Assume 30 waypoints already completed
+            self.history = True
+            self.damage_type = 'global'
+            self.attack = False
+            self.alert = False
+            self.num_uav = 1
+            self.battery_initial = 100
+        if self.scenario_num==8:
+             ## mission location: shieled
+             # home location: distant
+             # target density: sparse
+             # mission progress: high
+             # hisotry : no
+             ## damage assessment: local
+             # cyber attack: attack
+             # sentinel: No alert
+             # UAV: 1
+             # Battery: low
+            self.area_open = False
+            self.home_near = False
+            self.target_dense = False
+            self.initial_progress = 30 # to bring up mission_progress %. Assume 30 waypoints already completed
+            self.history = False
+            self.damage_type = 'guidance'
+            self.attack = True
+            self.alert = False
+            self.num_uav = 1
+            self.battery_initial = 60
+        if self.scenario_num==9:
+             ## mission location: shieled
+             # home location: distant
+             # target density: dense
+             # mission progress: low
+             # hisotry : no
+             ## damage assessment: global
+             # cyber attack: no attack
+             # sentinel: alert
+             # UAV: 1
+             # Battery: low
+            self.area_open = False
+            self.home_near = False
+            self.target_dense = True
+            self.initial_progress = 0
+            self.history = False
+            self.damage_type = 'global'
+            self.attack = False
+            self.alert = True
+            self.num_uav = 1
+            self.battery_initial = 60
+        if self.scenario_num==10:
+             ## mission location: shieled
+             # home location: near
+             # target density: dense
+             # mission progress: low
+             # hisotry : no
+             ## damage assessment: local
+             # cyber attack: attack
+             # sentinel: alert
+             # UAV: 2
+             # Battery: low
+            self.area_open = False
+            self.home_near = True
+            self.target_dense = True
+            self.initial_progress = 0
+            self.history = True
+            self.damage_type = 'other'
+            self.attack = True
+            self.alert = True
+            self.num_uav = 2
+            self.battery_initial = 60
+        if self.scenario_num==11:
+             ## mission location: shieled
+             # home location: distant
+             # target density: sparse
+             # mission progress: high
+             # hisotry : yes
+             ## damage assessment: local
+             # cyber attack: no attack
+             # sentinel: alert
+             # UAV: 2
+             # Battery: high
+            self.area_open = False
+            self.home_near = False
+            self.target_dense = False
+            self.initial_progress = 30 # to bring up mission_progress %. Assume 30 waypoints already completed
+            self.history = True
+            self.damage_type = 'other'
+            self.attack = False
+            self.alert = True
+            self.num_uav = 2
+            self.battery_initial = 100
+        if self.scenario_num==12:
+             ## mission location: shieled
+             # home location: near
+             # target density: sparse
+             # mission progress: low
+             # hisotry : no
+             ## damage assessment: global
+             # cyber attack: attack
+             # sentinel: No alert
+             # UAV: 2
+             # Battery: high
+            self.area_open = False
+            self.home_near = True
+            self.target_dense = False
+            self.initial_progress = 0 
+            self.history = False
+            self.damage_type = 'global'
+            self.attack = True
+            self.alert = False
+            self.num_uav = 2
+            self.battery_initial = 100
+
+
+        print("######## mission parameters ########\nflight_pattern: %s\ntarget_dense: %s\ninitial_progress: %s\nhistory: %s\nattack: %s\nnum_uav: %s\nbattery_initial: %s\n################################"%(self.flight_pattern,self.target_dense,self.initial_progress,self.history,self.attack,self.num_uav,self.battery_initial))
+
+        # flight_pattern
+        # Starting point of the searching area. different from home
+        # Different home location for whether mission area is open
+        if self.home_near and self.area_open:
+            self.starting_loc = LocationGlobal(35.9836983,-95.8752409, 10)
+        elif self.home_near and not self.area_open:
+            self.starting_loc = LocationGlobal(35.9836983,-95.8752409, 10)
+        elif not self.home_near and self.area_open:
+            self.starting_loc = LocationGlobal(35.9856183,-95.8752409, 10)
+        elif not self.home_near and not self.area_open:
+            self.starting_loc = LocationGlobal(35.9856183,-95.8752409, 10)
+
+        # set current battery same as initial level
+        self.battery_current = self.battery_initial
+
 
 
         #Start SITL if no connection string specified
@@ -54,9 +371,10 @@ class Sentinel():
         print('Connecting to vehicle on: %s' % self.connection_string)
         self.vehicle = connect(self.connection_string, wait_ready=True)
         self.button_counter = "0" # iteration in which last button clicked occured.
-        self.flag_param_save = True
+        self.flag_param_save = True     # a flag to keep having parameter txt file updated. Will be set False when misison ends
         self.sentinel_msg = "sentinel message 0"
         self.attacked = False
+        self.attacked_popup = False
 
     def get_location_metres(self, original_location, dNorth, dEast):
         """
@@ -96,7 +414,8 @@ class Sentinel():
         It returns None for the first waypoint (Home location).
         """
         nextwaypoint = self.vehicle.commands.next
-        if nextwaypoint==0 or nextwaypoint > len(self.vehicle.commands)-1:
+         # or nextwaypoint > len(self.vehicle.commands)-1
+        if nextwaypoint==0:
             return None
         missionitem=self.vehicle.commands[nextwaypoint-1] # commands are zero indexed
         lat = missionitem.x
@@ -196,6 +515,97 @@ class Sentinel():
         print(" Upload new commands to vehicle")
         cmds.upload()
 
+    def adds_areal_mission(self, aLocation, area_width, area_height, step_size):
+        # Orininal plan. 
+        # Adds waypoints to cover a square area.
+        """
+        Adds a takeoff command and four waypoint commands to the current mission. 
+        The waypoints are positioned to form a square of side length 2*aSize around the specified LocationGlobal (aLocation).
+        The function assumes vehicle.commands matches the vehicle mission state 
+        (you must have called download at least once in the session and after clearing the mission)
+        """ 
+        cmds = self.vehicle.commands
+
+        print(" Clear any existing commands")
+        cmds.clear() 
+        
+        print(" Define/add new commands.")
+        # Add new commands. The meaning/order of the parameters is documented in the Command class. 
+         
+        #Add MAV_CMD_NAV_TAKEOFF command. This is ignored if the vehicle is already in the air.
+        cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, 0, 0, 0, 0, 0, 0, 0, 0, 10))
+
+        #Define the four MAV_CMD_NAV_WAYPOINT locations and add the commands
+        # to north, to east
+        width_covered = 0
+        stroke_num = 0
+
+        while width_covered < area_width :
+            if stroke_num%2 == 0: # downward stroke
+                current_lat = -area_height
+            else: # upward stroke
+                current_lat = 0
+
+            # Move upward/downward
+            point1 = self.get_location_metres(aLocation, current_lat, width_covered)
+            cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point1.lat, point1.lon, 11))
+            self.missions.append(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point1.lat, point1.lon, 11))
+
+            width_covered+=step_size
+            stroke_num+=1
+
+            # move to East
+            point2 = self.get_location_metres(aLocation, current_lat, width_covered)
+            cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point2.lat, point2.lon, 11))
+            self.missions.append(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point2.lat, point2.lon, 11))
+
+            # width_covered+=5
+        print(" Upload new commands to vehicle")
+        cmds.upload()
+
+    def adds_areal_mission_zigzag(self, aLocation, area_width, area_height):
+        # Alternate plan. 
+        # Adds waypoints to cover a square area in quicker manner
+        """
+        Adds a takeoff command and four waypoint commands to the current mission. 
+        The waypoints are positioned to form a square of side length 2*aSize around the specified LocationGlobal (aLocation).
+        The function assumes vehicle.commands matches the vehicle mission state 
+        (you must have called download at least once in the session and after clearing the mission)
+        """ 
+        cmds = self.vehicle.commands
+
+        print(" Clear any existing commands")
+        cmds.clear() 
+        
+        print(" Define/add new commands.")
+        # Add new commands. The meaning/order of the parameters is documented in the Command class. 
+         
+        #Add MAV_CMD_NAV_TAKEOFF command. This is ignored if the vehicle is already in the air.
+        cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, 0, 0, 0, 0, 0, 0, 0, 0, 10))
+
+        #Define the four MAV_CMD_NAV_WAYPOINT locations and add the commands
+        # to north, to east
+        width_covered = 0
+        stroke_num = 0
+
+        while width_covered < area_width :
+            if stroke_num%2 == 0: # downward stroke
+                current_lat = -area_height
+            else: # upward stroke
+                current_lat = 0
+
+            width_covered+=5
+            stroke_num+=1
+
+            # move to East
+            point2 = self.get_location_metres(aLocation, current_lat, width_covered)
+            cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point2.lat, point2.lon, 11))
+            self.missions.append(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point2.lat, point2.lon, 11))
+
+            # width_covered+=5
+        print(" Upload new commands to vehicle")
+        cmds.upload()
+
     def arm_and_takeoff(self, aTargetAltitude):
         """
         Arms vehicle and fly to aTargetAltitude.
@@ -258,15 +668,25 @@ class Sentinel():
         # pdb.set_trace()
 
         #Write the modified mission and flush to the vehicle
-        for count,cmd in enumerate(missionlist):
-            # pdb.set_trace()
-            cmds.add(cmd)
-            if count == current_wp-1:
-                cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, hacked_waypoint.lat, hacked_waypoint.lon, 14))
+        # for count,cmd in enumerate(missionlist):
+        #     # pdb.set_trace()
+        #     cmds.add(cmd)
+        #     if count == current_wp-1:
+        #         cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, hacked_waypoint.lat, hacked_waypoint.lon, 14))
         
          
+        # cmds.upload()
+        # cmds.next = current_wp+1       
+
+        # cmds.add(missionlist[0])
+
+        cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, 0, 0, 0, 0, 0, 0, 0, 0, 10))
+        # cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, hacked_waypoint.lat, hacked_waypoint.lon, 14))
+        cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, hacked_waypoint.lat, hacked_waypoint.lon, 14))
         cmds.upload()
-        cmds.next = current_wp+1
+        cmds.next = 1
+
+
         # mode guided to activate? new waypoints:
         # https://github.com/dronekit/dronekit-python/issues/201
         self.vehicle.mode = VehicleMode("GUIDED")
@@ -357,7 +777,7 @@ class Sentinel():
 
     def save_parameters(self,aFileName):
 
-        output='function battery mission flight_time\n'
+        output='function battery mission flight_time attacked_popup attacked damage_type history_stat \n'
         #Add home location as 0th waypoint
         # home = vehicle.home_location
         time_elpased = round(time.time() - self.time_start,2)
@@ -373,17 +793,75 @@ class Sentinel():
         waypoint =  self.vehicle.commands.next
         num_waypoints = len(self.vehicle.commands)
         if num_waypoints > 0:
-            mission = str(round(float(waypoint)/num_waypoints * 100,2)) + " %"
+            # pdb.set_trace()
+            self.mission_progress = round((float(waypoint)+self.initial_progress)/(num_waypoints+self.initial_progress)*100, 2)
+            mission_progress_str = str(self.mission_progress) + " %"
         else :
-            mission = "Nan"
+            mission_progress_str = "Nan"
         # print(self.vehicle.battery.level)
-        battery =  str(round(self.vehicle.battery.level)) + " %"
 
-        output+="%s\t%s\t%s\t%s\n" % (function, battery, mission ,time_elpased)
+        # seconds_elapsed = sum(x * int(t) for x, t in zip([3600, 60, 1], time_elpased.split(":"))) 
+        # 80 % battery used over : 15 min * 60 sec = 0.088
+        # print('time_elpased : %s, battery_current: %s' %(time_elpased,self.battery_current ))
+        self.battery_current = self.battery_initial - (0.088*time_elpased)
+        battery =  str(round(self.battery_current,2))
+        # battery =  str(round(self.vehicle.battery.level))
+        history_stat = "NA"
+        if self.history:
+            ##########
+            # Policy on what history stat msg to display 
+            #########
+            if self.damage_type == 'nav':
+                history_stat = "Annual frequency: 20 occurences per year.Rate of immediate re-attack: 95%.Overall System Damage: 40%."
+            elif self.damage_type == 'guidance':
+                history_stat = "Annual frequency: 15 occurences per year.Rate of immediate re-attack: 75%.Overall System Damage: 60%."
+            elif self.damage_type == 'other':
+                history_stat = "Annual frequency: 10 occurences per year.Rate of immediate re-attack: 45%.Overall System Damage: 80%.Damage Breakdown: Navigation 50%, Guidance 10%"
+            elif self.damage_type == 'global':
+                history_stat = "Annual frequency: 15 occurences per year.Rate of immediate re-attack: 15%.Overall System Damage: 80%.Damage Breakdown: Navigation 50%, Guidance 10%"
 
+        output+="%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (function, battery, mission_progress_str ,time_elpased, self.attacked_popup, self.attacked, self.damage_type, history_stat)
         with open(aFileName, 'w') as file_:
             # print " Write mission to file"
             file_.write(output)
+
+        # Separate file for response option
+        # output2 = "%s" % (response_option)
+        response_option = "response_option\n"
+        if self.damage_type == 'nav':
+            response_option += '1. Replace the navigation module\t\
+(Quality: 45% +/- 10; Time: 4min +/- 1)\t\
+2. Replace the internal UAV-GCS communications to a backup communication channel\t\
+(Quality: 65% +/- 5; Time: 10min +/- 2)'
+        elif self.damage_type == 'guidance':
+            response_option += '1. Reset te navigation software and recover the original flight plan\t\
+(Quality: 45% +/- 10; Time: 4min +/- 1)\t\
+2. Upload an alternate flight plan\t\
+(Quality: 75% +/- 5; Time: 10min +/- 2)\t\
+3. Switch to a manual guidance mode\t\
+(Quality: 85% +/- 5; Time: 20min +/- 2)'
+        elif self.damage_type == 'other':
+            response_option += '1. Land UAVs\t\
+(Quality: 45% +/- 5; Time: 5min +/- 1)\t\
+2. Return home both (or one of the UAV(s)\t\
+(Quality: 25% +/- 10; Time: 10min +/- 2)\t\
+3. Call in a new UAV from home\t\
+(Quality: 95% +/- 5; Time: 20min +/- 2)'
+        elif self.damage_type == 'global':
+            response_option += '1. Reset te navigation software and recover the original flight plan\t\
+(Quality: 45% +/- 5; Time: 5min +/- 1)\t\
+2. Upload an alternate flight plan\t\
+(Quality: 75% +/- 5; Time: 10min +/- 2)\t\
+3. Switch to a manual guidance mode\t\
+(Quality: 85% +/- 5; Time: 20min +/- 2)\t\
+4. Check the control system'
+
+        with open("scripts/response_option.txt", 'w') as file_:
+            # print " Write mission to file"
+            file_.write(response_option)
+        if self.attacked_popup:
+            time.sleep(1)
+            self.attacked_popup = False
 
 
 
@@ -552,7 +1030,6 @@ class Sentinel():
             return
 
 
-
     def read_button_log(self,aFileName):
         with open(aFileName) as f:
             for i, line in enumerate(f):
@@ -577,6 +1054,7 @@ class Sentinel():
             timer.start()
             # print(flag_param_save)
             # print("!!!!!timer started!!")
+
             self.save_parameters("scripts/parameters.txt")
             self.button_counter = self.read_button_log("scripts/button_log.txt")
         else:
@@ -601,34 +1079,53 @@ class Sentinel():
         return distancetopoint
 
 
-    def check_attack_trigger(self):
-        nextwaypoint = self.vehicle.commands.next
-        time_elpased = time.time() - self.time_start 
-        altitude = self.vehicle.location.global_relative_frame.alt
+    def check_attack_trigger(self, popup=True):
+        # nextwaypoint = self.vehicle.commands.next
+        # time_elpased = time.time() - self.time_start 
+        # altitude = self.vehicle.location.global_relative_frame.alt
 
-        targetLocation = LocationGlobalRelative(float(self.attack_coordinate[0]),float(self.attack_coordinate[1]),altitude)
-        distancetopoint = self.get_distance_metres(self.vehicle.location.global_frame, targetLocation)
+        # targetLocation = LocationGlobalRelative(float(self.attack_coordinate[0]),float(self.attack_coordinate[1]),altitude)
+        # distancetopoint = self.get_distance_metres(self.vehicle.location.global_frame, targetLocation)
         # print(altitude)
         # print(self.attack_altitude)
 
-        if nextwaypoint >= self.attack_waypoint :
-            self.sentinel_msg = "Cyber attack triggered at waypoint: %s!" %(nextwaypoint)
+
+        random_num = random.random()
+        if random_num < 0.2:
+            self.sentinel_msg = "Cyber attack triggered !"
             print(self.sentinel_msg)
+            # record attack flag only when sentinel is supposed to alert, regardless of whether there is actual attack
+            if popup:
+                self.attacked_popup = True 
+            self.attacked = True
             return True
-        elif time_elpased >= self.attack_time :
-            self.sentinel_msg = "Cyber attack triggered at time: %s seconds!" %(time_elpased)
-            print(self.sentinel_msg)
-            return True
-        elif altitude >= self.attack_altitude :
-            self.sentinel_msg = "Cyber attack triggered at altitude: %s!" %(altitude)
-            print(self.sentinel_msg)
-            return True
-        elif distancetopoint <= 10 : 
-            self.sentinel_msg = "Cyber attack triggered at distance to cooordinate (%s): %s!" %(targetLocation, distancetopoint)
-            print(self.sentinel_msg)
-            return True
-        else:
-            return False
+
+
+        # if nextwaypoint >= self.attack_waypoint :
+        #     self.sentinel_msg = "Cyber attack triggered at waypoint: %s!" %(nextwaypoint)
+        #     print(self.sentinel_msg)
+        #     return True
+        # elif time_elpased >= self.attack_time :
+        #     self.sentinel_msg = "Cyber attack triggered at time: %s seconds!" %(time_elpased)
+        #     print(self.sentinel_msg)
+        #     return True
+        # elif altitude >= self.attack_altitude :
+        #     self.sentinel_msg = "Cyber attack triggered at altitude: %s!" %(altitude)
+        #     print(self.sentinel_msg)
+        #     return True
+        # elif distancetopoint <= 10 : 
+        #     self.sentinel_msg = "Cyber attack triggered at distance to cooordinate (%s): %s!" %(targetLocation, distancetopoint)
+        #     print(self.sentinel_msg)
+        #     return True
+        # else:
+        #     return False
+
+    def trigger_cyber_attack(self):
+        self.attacked = True
+        print('Cyper attack point is reached!!!!')
+        nextwaypoint = self.vehicle.commands.next
+        hacked_waypoint = self.get_location_metres(self.home_location, -45, -45)
+        self.add_new_mission(nextwaypoint, hacked_waypoint)
 
 
     def run(self):
@@ -636,9 +1133,62 @@ class Sentinel():
 
         print('Create a new mission (for current location)')
         self.missions = []
-        self.adds_triangle_mission(self.vehicle.location.global_frame, 15)
+        # self.adds_triangle_mission(self.vehicle.location.global_frame, 15)
 
-        self.save_mission(self.original_mission_filename_save)
+        # self.save_mission(self.original_mission_filename_save)
+
+
+        # flight pattern : linear- sparse
+        if self.flight_pattern==0:
+            # width 60, height 30
+            self.adds_areal_mission(self.starting_loc, 60, 30, 6)
+            # if self.num_uav == 1:
+            # else:
+            #     self.adds_areal_mission(self.starting_loc, 30, 30)
+
+        # flight pattern : linear- dense
+        elif self.flight_pattern==1:
+            # width 60, height 30
+            self.adds_areal_mission(self.starting_loc, 60, 30, 3)
+
+        # flight pattern : zig-zag
+        elif self.flight_pattern==2:
+            self.adds_areal_mission_zigzag(self.starting_loc, 60, 30)
+
+
+        # Flight patterns 3,4,5 for 2-UAV only
+        # Covers only half of the width, othe other half covered by Drone B (EMU)
+        elif self.flight_pattern==3:
+            if self.num_uav == 1:
+                print("Flight pattern #3 only available with 2 UAVs. Pattern changed to #0")
+                self.flight_pattern = 0
+                self.adds_areal_mission(self.starting_loc, 60, 30, 6)
+            else: 
+                # Same as pattern 0 except Drone A covers only half of the area
+                self.adds_areal_mission(self.starting_loc, 30, 30, 6)
+
+        elif self.flight_pattern==4:
+            if self.num_uav == 1:
+                print("Flight pattern #4 only available with 2 UAVs. Pattern changed to #1")
+                self.flight_pattern = 1
+                self.adds_areal_mission(self.starting_loc, 60, 30, 3)
+            else: 
+                # Same as pattern 1 except Drone A covers only half of the area
+                self.adds_areal_mission(self.starting_loc, 30, 30, 3)
+
+        elif self.flight_pattern==5:
+            if self.num_uav == 1:
+                print("Flight pattern #5 only available with 2 UAVs. Pattern changed to #2")
+                self.flight_pattern = 2
+                self.adds_areal_mission_zigzag(self.starting_loc, 60, 30)
+            else: 
+                # Same as pattern 2 except Drone A covers only half of the area
+                self.adds_areal_mission_zigzag(self.starting_loc, 30, 30)
+
+
+
+        self.save_mission(self.alternate_mission_filename)
+
 
         self.home_location = self.vehicle.location.global_frame
 
@@ -677,11 +1227,13 @@ class Sentinel():
                 # self.sentinel_msg = "sentinel message " + str(counter)
 
                 print('Distance to waypoint (%s): %s' % (nextwaypoint, self.distance_to_current_waypoint()))
-            if self.check_attack_trigger() and not self.attacked: # check whether attack trigger point reached.
-                print('Cyper attack point is reached!!!!')
-                hacked_waypoint = self.get_location_metres(self.home_location, -15, -15)
-                self.add_new_mission(nextwaypoint, hacked_waypoint)
-                self.attacked = True
+            if self.mission_progress > 50 and not self.attacked:
+                if self.check_attack_trigger(self.alert): # check whether attack trigger point reached.
+                # delay cyber attack by 15 seconds
+                    if self.delay_attack:
+                        timer.sleep(10)
+                    if self.attack:
+                        self.trigger_cyber_attack()
                 # pdb.set_trace()
             # if nextwaypoint==3: #Skip to next waypoint
             #     print('Skipping to Waypoint 5 when reach waypoint 3')

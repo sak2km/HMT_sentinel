@@ -32,11 +32,11 @@ from pymavlink import mavutil
 # app3_obj.run()
 # print("hii")
 
-root2 = Tk()
-root2.title("Sentinel Panel")
-app2 = msg_window2(master=root2)
+root1 = Tk()
+root1.title("Sentinel MSG Panel")
+app1 = msg_window1(master=root1)
 # app.button_handler2()
-app2.configure(bg='gray90')
-app2.entry_update()
+app1.configure(bg='gray90')
+app1.entry_update()
 
-app2.mainloop()
+app1.mainloop()

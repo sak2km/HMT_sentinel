@@ -1,0 +1,23 @@
+pip install mavproxy
+pip install dronekit
+pip install dronekit-sitl
+
+
+(install UGCS)
+
+
+4 tabs
+
+Start SITL
+dronekit-sitl copter --home=35.9835973,-95.8742309,0,180
+
+
+Start Mavproxy
+mavproxy.py --master tcp:127.0.0.1:5760 --sitl 127.0.0.1:5501 --out 127.0.0.1:14550 --out 127.0.0.1:14551 --out 172.29.0.18:15667
+
+Sentinel panel
+python scripts/app2.py
+
+
+Simulation
+python scripts/sentinel2.py --connect udp:127.0.0.1:14551 --scenario_num 5 --flight_pattern 2
