@@ -1,2 +1,2 @@
-counter popup_opened
-0	1
+counter	popup_opened	time_clicked1	time_clicked2
+0	1	0:00:56.14	0:01:15.27

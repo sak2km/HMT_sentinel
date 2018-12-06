@@ -22,18 +22,18 @@ class msg_window2(Frame):
         with open(fileName, 'w') as file_:
             # print " Write mission to file"
             file_.write(output)
-    def popupmsg(self, msg):
-        # popup = tk.Tk()
-        # popup.wm_title("!")
-        # label = ttk.Label(popup, text=msg, font='Helvetica 16 bold')
-        # label.pack(side="top", fill="x", pady=10)
-        # B1 = ttk.Button(popup, text="Okay", command = popup.destroy)
-        # B1.pack()
-        # popup.mainloop()
-        t = tk.Toplevel(self)
-        t.wm_title("Warning!")
-        l = tk.Label(t, text=msg)
-        l.pack(side="top", fill="both", expand=True, padx=100, pady=100)
+    # def popupmsg(self, msg):
+    #     # popup = tk.Tk()
+    #     # popup.wm_title("!")
+    #     # label = ttk.Label(popup, text=msg, font='Helvetica 16 bold')
+    #     # label.pack(side="top", fill="x", pady=10)
+    #     # B1 = ttk.Button(popup, text="Okay", command = popup.destroy)
+    #     # B1.pack()
+    #     # popup.mainloop()
+    #     t = tk.Toplevel(self)
+    #     t.wm_title("Warning!")
+    #     l = tk.Label(t, text=msg)
+    #     l.pack(side="top", fill="both", expand=True, padx=100, pady=100)
 
     def update_reconfig_msg(self):
         self.txt_3.configure(text="Control system reconfigured. Trajectories updated automatically.")
@@ -48,6 +48,15 @@ class msg_window2(Frame):
       # Popup warning message an attack has occured
       if tkMessageBox.showinfo("Message", 'Some of available responses options will be provided.\n\nVerify these options if necessary.'):
         print('Some of available responses options will be provided.\n\nVerify these options if necessary.')
+        time_second_popup = str(self.flight_time[0:10])
+        # notify Sentinel that the popup window has opened.
+        with open("scripts/popup_log.txt", 'w+') as file_:
+          output = "counter\tpopup_opened\ttime_clicked1\ttime_clicked2\n"
+          output += "%s\t%s\t%s\t%s\n" % (self.counter, 1, self.time_first_popup, time_second_popup)
+          file_.write(output)
+
+
+
 
       if self.recovery_options == 'NA':
         # self.label_statistics.lower(self.frame2)
@@ -62,19 +71,18 @@ class msg_window2(Frame):
       # if popup_opened == 1, attack window have opened
       popup_opened = 0
       with open("scripts/popup_log.txt") as f:
-          for i, line in enumerate(f):
-              if i==0:
-                  if not line.startswith('counter popup_opened'):
-                      raise Exception('File is not supported WP version')
-              else:
-                  linearray=line.split('\t')
-                  counter_log=int(linearray[0]) # button counter from log file
-                  popup_opened=int(linearray[1])
+        for i, line in enumerate(f):
+          if i==0:
+            if not line.startswith('counter\tpopup_opened\ttime_clicked1\ttime_clicked2'):
+              raise Exception('File is not supported WP version')
+          else:
+            linearray=line.split('\t')
+            counter_log=int(linearray[0]) # button counter from log file
+            popup_opened=int(linearray[1])
       if popup_opened == 1:
         return True
       else:
         return False
-
 
     def entry_update(self, vehicle=None):
         # print("hi")
@@ -108,6 +116,11 @@ class msg_window2(Frame):
 
         # print("self.attacked_popup_flag: %s, self.attacked: %s,  self.attacked_popup: %s"%(self.attacked_popup_flag, self.attacked, self.attacked_popup))
 
+        if not self.attacked:
+            self.time_first_popup = '0'
+            self.time_second_popup = '0'
+
+
         if self.attacked and self.attacked_popup and not popup_opened:
           # self.attacked_popup_flag and
           if self.damage_type == 'nav':
@@ -130,12 +143,15 @@ class msg_window2(Frame):
           if tkMessageBox.showinfo("Message", "A Cyber attack detected!!!"):
             print('Attack message delivered.')
             print('popup open recorded.')
+
+            self.time_first_popup = str(self.flight_time[0:10])
             # notify Sentinel that the popup window has opened.
             with open("scripts/popup_log.txt", 'w+') as file_:
-              output = "counter popup_opened\n"
-              output += "%s\t%s\n" % (self.counter, 1)
+              output = "counter\tpopup_opened\ttime_clicked1\ttime_clicked2\n"
+              output += "%s\t%s\t%s\t%s\n" % (self.counter, 1, self.time_first_popup, self.time_second_popup)
               file_.write(output)
             self.attacked_popup = False
+
           # self.popupmsg("A Cyber attack detected!!!")
 
 
@@ -189,7 +205,8 @@ class msg_window2(Frame):
         self.counter = 0
         self.attacked_popup = False
         self.attacked_popup_flag = True
-
+        self.time_first_popup = '0'
+        self.time_second_popup = '0'
 
         # create all of the main containers
         self.frame1 = Frame(self, bg='gray', highlightbackground="gray", highlightthickness=5, width=55, height=50, pady=5)
@@ -298,16 +315,16 @@ class msg_window2(Frame):
 
         # notify Sentinel that the popup window has not been opend. 
         # Default setting
-        with open("scripts/popup_log.txt", 'w+') as file_:
-          output = "counter popup_opened\n"
-          output += "%s\t%s\n" % (self.counter, 0)
-          file_.write(output)
+        # with open("scripts/popup_log.txt", 'w+') as file_:
+        #   output = "counter popup_opened\n"
+        #   output += "%s\t%s\n" % (self.counter, 0)
+        #   file_.write(output)
 
-        output='function battery mission flight_time attacked_popup attacked damage_type history_stat \n'
-        output+="%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % ( "83%", 100, 100 ,0, False, False, 'global', 'NA')
-        with open("scripts/parameters.txt", 'w') as file_:
-            # print " Write mission to file"
-            file_.write(output)
+        # output='function battery mission flight_time attacked_popup attacked damage_type history_stat \n'
+        # output+="%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % ( "83%", 100, 100 ,0, False, False, 'global', 'NA')
+        # with open("scripts/parameters.txt", 'w') as file_:
+        #     # print " Write mission to file"
+        #     file_.write(output)
 
 
         # self.txt_function.insert(INSERT,msg_function)

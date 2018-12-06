@@ -382,8 +382,8 @@ class Sentinel():
 
         self.save_parameters_null()
         with open("scripts/popup_log.txt", 'w+') as file_:
-          output = "counter popup_opened\n"
-          output += "%s\t%s\n" % (0, 0)
+          output = "counter\tpopup_opened\ttime_clicked1\ttime_clicked2\n"
+          output += "%s\t%s\t%s\t%s\n" % (0, 0, 0, 0)
           file_.write(output)
 
     def get_location_metres(self, original_location, dNorth, dEast):
@@ -1072,7 +1072,7 @@ class Sentinel():
         with open(aFileName) as f:
             for i, line in enumerate(f):
                 if i==0:
-                    if not line.startswith('counter popup_opened'):
+                    if not line.startswith('counter\tpopup_opened\ttime_clicked1\ttime_clicked2'):
                         raise Exception('File is not supported WP version')
                 else:
                     linearray=line.split('\t')

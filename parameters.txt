@@ -1,2 +1,2 @@
 function battery mission flight_time attacked_popup attacked damage_type history_stat popup_flag_now 
-83%	80.85	100.0 %	217.66	False	True	global	Annual frequency: 15 occurences per year.Rate of immediate re-attack: 15%.Overall System Damage: 80%.Damage Breakdown: Navigation 50%, Guidance 10%
+83%	92.31	100.0 %	87.34	False	True	nav	NA

@@ -1,2 +1,2 @@
 response_option
-1. Reset te navigation software and recover the original flight plan	(Quality: 45% +/- 5; Time: 5min +/- 1)	2. Upload an alternate flight plan	(Quality: 75% +/- 5; Time: 10min +/- 2)	3. Switch to a manual guidance mode	(Quality: 85% +/- 5; Time: 20min +/- 2)	4. Check the control system
+1. Replace the navigation module	(Quality: 45% +/- 10; Time: 4min +/- 1)	2. Replace the internal UAV-GCS communications to a backup communication channel	(Quality: 65% +/- 5; Time: 10min +/- 2)
