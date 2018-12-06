@@ -58,12 +58,31 @@ class msg_window2(Frame):
         # print(self.recovery_options)
         self.txt_2.configure(text=self.recovery_options, fg="#414141", font='Helvetica 14')
 
+    def read_attack_popup(self):
+      # if popup_opened == 1, attack window have opened
+      popup_opened = 0
+      with open("scripts/popup_log.txt") as f:
+          for i, line in enumerate(f):
+              if i==0:
+                  if not line.startswith('counter popup_opened'):
+                      raise Exception('File is not supported WP version')
+              else:
+                  linearray=line.split('\t')
+                  counter_log=int(linearray[0]) # button counter from log file
+                  popup_opened=int(linearray[1])
+      if popup_opened == 1:
+        return True
+      else:
+        return False
+
 
     def entry_update(self, vehicle=None):
         # print("hi")
         # entry_altitude.delete(1.0, END)
         # self.alt = vehicle.location.global_relative_frame.alt
         self.read_parameters()
+        # Whther attack popup have been opened
+        popup_opened = self.read_attack_popup()
 
 
         # self.txt_function.configure(text=self.function)
@@ -87,7 +106,10 @@ class msg_window2(Frame):
         self.flight_time = str(datetime.timedelta(seconds=self.flight_time_sec))
         self.txt_time.configure(text=self.flight_time[0:10])
 
-        if self.attacked_popup_flag and self.attacked and self.attacked_popup:
+        # print("self.attacked_popup_flag: %s, self.attacked: %s,  self.attacked_popup: %s"%(self.attacked_popup_flag, self.attacked, self.attacked_popup))
+
+        if self.attacked and self.attacked_popup and not popup_opened:
+          # self.attacked_popup_flag and
           if self.damage_type == 'nav':
             self.label_forceland.configure(text="Damage on: Navigation module (Drone A).", font='Helvetica 16 bold')
           elif self.damage_type == 'guidance':
@@ -107,6 +129,13 @@ class msg_window2(Frame):
           # Popup warning message an attack has occured
           if tkMessageBox.showinfo("Message", "A Cyber attack detected!!!"):
             print('Attack message delivered.')
+            print('popup open recorded.')
+            # notify Sentinel that the popup window has opened.
+            with open("scripts/popup_log.txt", 'w+') as file_:
+              output = "counter popup_opened\n"
+              output += "%s\t%s\n" % (self.counter, 1)
+              file_.write(output)
+            self.attacked_popup = False
           # self.popupmsg("A Cyber attack detected!!!")
 
 
@@ -125,7 +154,7 @@ class msg_window2(Frame):
 
           self.after(10000, self.update_response_option)
 
-          self.attacked_popup_flag = False
+          
 
         elif not self.attacked and not self.attacked_popup:
           # No attack
@@ -264,6 +293,21 @@ class msg_window2(Frame):
         self.txt_mission.configure(text=msg_mission)
         self.txt_battery.configure(text=msg_battery)
         self.txt_time.configure(text=msg_time)
+
+
+
+        # notify Sentinel that the popup window has not been opend. 
+        # Default setting
+        with open("scripts/popup_log.txt", 'w+') as file_:
+          output = "counter popup_opened\n"
+          output += "%s\t%s\n" % (self.counter, 0)
+          file_.write(output)
+
+        output='function battery mission flight_time attacked_popup attacked damage_type history_stat \n'
+        output+="%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % ( "83%", 100, 100 ,0, False, False, 'global', 'NA')
+        with open("scripts/parameters.txt", 'w') as file_:
+            # print " Write mission to file"
+            file_.write(output)
 
 
         # self.txt_function.insert(INSERT,msg_function)

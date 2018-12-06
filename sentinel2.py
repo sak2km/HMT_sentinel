@@ -376,6 +376,16 @@ class Sentinel():
         self.attacked = False
         self.attacked_popup = False
 
+
+        # notify Sentinel that the popup window has not been opend. 
+        # Default setting
+
+        self.save_parameters_null()
+        with open("scripts/popup_log.txt", 'w+') as file_:
+          output = "counter popup_opened\n"
+          output += "%s\t%s\n" % (0, 0)
+          file_.write(output)
+
     def get_location_metres(self, original_location, dNorth, dEast):
         """
         Returns a LocationGlobal object containing the latitude/longitude `dNorth` and `dEast` metres from the 
@@ -775,9 +785,19 @@ class Sentinel():
 
         return missionlist
 
+    def save_parameters_null(self):
+        # Save parameter txt file to default value
+
+        output = 'function battery mission flight_time attacked_popup attacked damage_type history_stat \n'
+        output+="%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % ( "83%", 100, 100 ,0, False, False, 'global', 'NA')
+        with open("scripts/parameters.txt", 'w') as file_:
+            # print " Write mission to file"
+            file_.write(output)
+
+
     def save_parameters(self,aFileName):
 
-        output='function battery mission flight_time attacked_popup attacked damage_type history_stat \n'
+        output='function battery mission flight_time attacked_popup attacked damage_type history_stat popup_flag_now \n'
         #Add home location as 0th waypoint
         # home = vehicle.home_location
         time_elpased = round(time.time() - self.time_start,2)
@@ -859,9 +879,9 @@ class Sentinel():
         with open("scripts/response_option.txt", 'w') as file_:
             # print " Write mission to file"
             file_.write(response_option)
-        if self.attacked_popup:
-            time.sleep(1)
-            self.attacked_popup = False
+        # if self.attacked_popup:
+        #     time.sleep(1)
+        #     self.attacked_popup = False
 
 
 
@@ -1047,6 +1067,21 @@ class Sentinel():
                 self.process_buttons(button_num)
             return counter_log
 
+    def read_popup_log(self,aFileName):
+        popup_opened = 0
+        with open(aFileName) as f:
+            for i, line in enumerate(f):
+                if i==0:
+                    if not line.startswith('counter popup_opened'):
+                        raise Exception('File is not supported WP version')
+                else:
+                    linearray=line.split('\t')
+                    counter_log=int(linearray[0]) # button counter from log file
+                    popup_opened=int(linearray[1])
+            if popup_opened == 1 and self.attacked_popup:
+                print("Attack popup opened!")
+                self.attacked_popup = False
+
 
     def trigger_param_save(self):
         timer = threading.Timer(0.5, self.trigger_param_save)
@@ -1056,7 +1091,8 @@ class Sentinel():
             # print("!!!!!timer started!!")
 
             self.save_parameters("scripts/parameters.txt")
-            self.button_counter = self.read_button_log("scripts/button_log.txt")
+            # self.button_counter = self.read_button_log("scripts/button_log.txt")
+            self.read_popup_log("scripts/popup_log.txt")
         else:
             print("!!!!time to close param save!!")
             timer.cancel()
@@ -1250,7 +1286,7 @@ class Sentinel():
                 break;
             time.sleep(3)
             counter += 1
-            if counter > 100:
+            if counter > 70:
                 print("break due to counter")
                 break
 
@@ -1263,6 +1299,7 @@ class Sentinel():
         self.flag_param_save = False
         #Close vehicle object before exiting script
         print("Close vehicle object")
+        # self.save_parameters_null()
         timer_vehicle_close = threading.Timer(3.0,  self.vehicle.close()) 
         # vehicle.close()
         # param = [0,0,0,0,0]
