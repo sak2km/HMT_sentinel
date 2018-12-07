@@ -38,7 +38,7 @@ class msg_window2(Frame):
     def update_reconfig_msg(self):
         self.txt_3.configure(text="Control system reconfigured. Trajectories updated automatically.")
         # make it disappear after 3 sec
-        self.after(3000, self.hide_reconfig_msg)
+        self.after(5000, self.hide_reconfig_msg)
         
     def hide_reconfig_msg(self):
         self.txt_3.configure(text='',fg="red", font='Helvetica 14')
@@ -129,6 +129,10 @@ class msg_window2(Frame):
             self.label_forceland.configure(text="Damage on: Guidance module (Drone A).", font='Helvetica 16 bold')
           elif self.damage_type == 'other':
             self.label_forceland.configure(text="Damage on: Other modules (Drone A).", font='Helvetica 16 bold')
+          elif self.damage_type == 'glabal':
+            self.label_forceland.configure(text="Damage on: Navigation, Guidance, and other modules (Drone A).", font='Helvetica 16 bold')
+          elif self.damage_type == 'local':
+            self.label_forceland.configure(text="Damage on: Navigation module (Drone A).", font='Helvetica 16 bold')
 
           if self.history_stat == 'NA':
             # self.label_statistics.lower(self.frame2)
@@ -240,7 +244,7 @@ class msg_window2(Frame):
 
         self.label_forceland = Label(self.frame1,anchor=W,justify="left", bg='gray',width=40,text="Damage on: ", font='Helvetica 16 bold')
         self.label_forceland.grid(row=0, column=0)
-        self.label_statistics = Label(self.frame2, anchor=W, width=40, justify="left", bg='gray',text="Previous Statistics:", font='Helvetica 21')
+        self.label_statistics = Label(self.frame2, anchor=W, width=40, justify="left", bg='gray',text="Previously Reported Cyber-attacks:", font='Helvetica 21')
         self.label_statistics.grid(row=0, column=0)
         # self.label_original = Label(self.frame3, bg='gray',text="Original Plan", font='Helvetica 14 bold').grid(row=0, column=0)
         # self.label_alternative = Label(self.frame4, bg='gray',text="Alternative Plan", font='Helvetica 14 bold').grid(row=0, column=0)

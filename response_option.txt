@@ -1,2 +1,2 @@
 response_option
-1. Replace the navigation module	(Quality: 45% +/- 10; Time: 4min +/- 1)	2. Replace the internal UAV-GCS communications to a backup communication channel	(Quality: 65% +/- 5; Time: 10min +/- 2)
+1. Land UAVs	(Quality: 45% +/- 5; Time: 5min +/- 1)	2. Return home both (or one of the UAV(s)	(Quality: 25% +/- 10; Time: 10min +/- 2)	3. Call in a new UAV from home	(Quality: 95% +/- 5; Time: 20min +/- 2)

@@ -50,7 +50,7 @@ class Sentinel():
         self.original_mission_filename = 'scripts/original_mission.txt'
         self.original_mission_filename_save = 'scripts/original_mission.txt'
         self.alternate_mission_filename = 'scripts/alternate_mission.txt'
-        self.mission_progress = "Nan"
+        self.mission_progress = '0'
 
         # mission location : open/shieded
         # home location : near/distant
@@ -73,7 +73,7 @@ class Sentinel():
         self.initial_progress = 0
         self.damage_type = 'nav' # navigation, guidance, global (guidance + control), or other
         # Starting point of the searching area. different from home
-        self.starting_loc = LocationGlobal(35.9836983,-95.8752409, 10)
+        self.starting_loc = LocationGlobal(35.9836983,-95.8752409, 20)
 
 
         # if self.scenario_num==2 or self.scenario_num==3 or self.scenario_num==3 or self.scenario_num==3 or \
@@ -347,13 +347,20 @@ class Sentinel():
         # Starting point of the searching area. different from home
         # Different home location for whether mission area is open
         if self.home_near and self.area_open:
-            self.starting_loc = LocationGlobal(35.9836983,-95.8752409, 10)
+            self.starting_loc = LocationGlobal(46.7651764,8.3240687, 20)       
+            # self.starting_loc = LocationGlobal(35.9836983,-95.8752409, 10)
+
         elif self.home_near and not self.area_open:
-            self.starting_loc = LocationGlobal(35.9836983,-95.8752409, 10)
+            self.starting_loc = LocationGlobal(46.7633352,8.3325871, 20)
+            # self.starting_loc = LocationGlobal(35.9836983,-95.8752409, 10)
+
         elif not self.home_near and self.area_open:
-            self.starting_loc = LocationGlobal(35.9856183,-95.8752409, 10)
+            self.starting_loc = LocationGlobal(46.7619141,8.3184276, 20)
+            # self.starting_loc = LocationGlobal(35.9856183,-95.8752409, 10)
+
         elif not self.home_near and not self.area_open:
-            self.starting_loc = LocationGlobal(35.9856183,-95.8752409, 10)
+            self.starting_loc = LocationGlobal(46.7633352,8.3325871, 20)
+            # self.starting_loc = LocationGlobal(35.9856183,-95.8752409, 10)
 
         # set current battery same as initial level
         self.battery_current = self.battery_initial
@@ -558,16 +565,16 @@ class Sentinel():
 
             # Move upward/downward
             point1 = self.get_location_metres(aLocation, current_lat, width_covered)
-            cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point1.lat, point1.lon, 11))
-            self.missions.append(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point1.lat, point1.lon, 11))
+            cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point1.lat, point1.lon, 20))
+            self.missions.append(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point1.lat, point1.lon, 20))
 
             width_covered+=step_size
             stroke_num+=1
 
             # move to East
             point2 = self.get_location_metres(aLocation, current_lat, width_covered)
-            cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point2.lat, point2.lon, 11))
-            self.missions.append(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point2.lat, point2.lon, 11))
+            cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point2.lat, point2.lon, 20))
+            self.missions.append(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point2.lat, point2.lon, 20))
 
             # width_covered+=5
         print(" Upload new commands to vehicle")
@@ -591,7 +598,7 @@ class Sentinel():
         # Add new commands. The meaning/order of the parameters is documented in the Command class. 
          
         #Add MAV_CMD_NAV_TAKEOFF command. This is ignored if the vehicle is already in the air.
-        cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, 0, 0, 0, 0, 0, 0, 0, 0, 10))
+        cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, 0, 0, 0, 0, 0, 0, 0, 0, 20))
 
         #Define the four MAV_CMD_NAV_WAYPOINT locations and add the commands
         # to north, to east
@@ -656,7 +663,7 @@ class Sentinel():
                 break
             time.sleep(5)
 
-    def add_new_mission(self, current_wp, hacked_waypoint):
+    def add_new_mission(self, current_wp, hacked_command, hacked_waypoint=None):
         # Get the set of commands from the vehicle        
         print('!!!!!!!!!!!CYBER ATTACK !!! New waypoint is Added')
 
@@ -692,7 +699,8 @@ class Sentinel():
 
         cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, 0, 0, 0, 0, 0, 0, 0, 0, 10))
         # cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, hacked_waypoint.lat, hacked_waypoint.lon, 14))
-        cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, hacked_waypoint.lat, hacked_waypoint.lon, 14))
+        # cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, hacked_waypoint.lat, hacked_waypoint.lon, 14))
+        cmds.add(hacked_command)
         cmds.upload()
         cmds.next = 1
 
@@ -812,12 +820,13 @@ class Sentinel():
         # speed =  self.vehicle.airspeed
         waypoint =  self.vehicle.commands.next
         num_waypoints = len(self.vehicle.commands)
-        if num_waypoints > 0:
+        # mission_progress_str = '0%'
+        if num_waypoints > 0 and not self.attacked:
             # pdb.set_trace()
             self.mission_progress = round((float(waypoint)+self.initial_progress)/(num_waypoints+self.initial_progress)*100, 2)
-            mission_progress_str = str(self.mission_progress) + " %"
-        else :
-            mission_progress_str = "Nan"
+        mission_progress_str = str(self.mission_progress) + " %"
+        # else :
+        #     mission_progress_str = "Nan"
         # print(self.vehicle.battery.level)
 
         # seconds_elapsed = sum(x * int(t) for x, t in zip([3600, 60, 1], time_elpased.split(":"))) 
@@ -1160,8 +1169,10 @@ class Sentinel():
         self.attacked = True
         print('Cyper attack point is reached!!!!')
         nextwaypoint = self.vehicle.commands.next
-        hacked_waypoint = self.get_location_metres(self.home_location, -45, -45)
-        self.add_new_mission(nextwaypoint, hacked_waypoint)
+        hacked_command = Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, 46.7620279, 8.3316487, 11)
+        # hacked_waypoint = self.get_location_metres(self.home_location, -45, -45)
+
+        self.add_new_mission(nextwaypoint, hacked_command)
 
 
     def run(self):
@@ -1177,7 +1188,7 @@ class Sentinel():
         # flight pattern : linear- sparse
         if self.flight_pattern==0:
             # width 60, height 30
-            self.adds_areal_mission(self.starting_loc, 60, 30, 6)
+            self.adds_areal_mission(self.starting_loc, 80, 50, 6)
             # if self.num_uav == 1:
             # else:
             #     self.adds_areal_mission(self.starting_loc, 30, 30)
@@ -1185,11 +1196,11 @@ class Sentinel():
         # flight pattern : linear- dense
         elif self.flight_pattern==1:
             # width 60, height 30
-            self.adds_areal_mission(self.starting_loc, 60, 30, 3)
+            self.adds_areal_mission(self.starting_loc, 80, 50, 3)
 
         # flight pattern : zig-zag
         elif self.flight_pattern==2:
-            self.adds_areal_mission_zigzag(self.starting_loc, 60, 30)
+            self.adds_areal_mission_zigzag(self.starting_loc, 80, 50)
 
 
         # Flight patterns 3,4,5 for 2-UAV only
@@ -1198,28 +1209,28 @@ class Sentinel():
             if self.num_uav == 1:
                 print("Flight pattern #3 only available with 2 UAVs. Pattern changed to #0")
                 self.flight_pattern = 0
-                self.adds_areal_mission(self.starting_loc, 60, 30, 6)
+                self.adds_areal_mission(self.starting_loc, 80, 50, 6)
             else: 
                 # Same as pattern 0 except Drone A covers only half of the area
-                self.adds_areal_mission(self.starting_loc, 30, 30, 6)
+                self.adds_areal_mission(self.starting_loc, 40, 50, 6)
 
         elif self.flight_pattern==4:
             if self.num_uav == 1:
                 print("Flight pattern #4 only available with 2 UAVs. Pattern changed to #1")
                 self.flight_pattern = 1
-                self.adds_areal_mission(self.starting_loc, 60, 30, 3)
+                self.adds_areal_mission(self.starting_loc, 80, 50, 3)
             else: 
                 # Same as pattern 1 except Drone A covers only half of the area
-                self.adds_areal_mission(self.starting_loc, 30, 30, 3)
+                self.adds_areal_mission(self.starting_loc, 40, 50, 3)
 
         elif self.flight_pattern==5:
             if self.num_uav == 1:
                 print("Flight pattern #5 only available with 2 UAVs. Pattern changed to #2")
                 self.flight_pattern = 2
-                self.adds_areal_mission_zigzag(self.starting_loc, 60, 30)
+                self.adds_areal_mission_zigzag(self.starting_loc, 80, 50)
             else: 
                 # Same as pattern 2 except Drone A covers only half of the area
-                self.adds_areal_mission_zigzag(self.starting_loc, 30, 30)
+                self.adds_areal_mission_zigzag(self.starting_loc, 40, 50)
 
 
 
@@ -1286,9 +1297,9 @@ class Sentinel():
                 break;
             time.sleep(3)
             counter += 1
-            if counter > 70:
-                print("break due to counter")
-                break
+            # if counter > 70:
+            #     print("break due to counter")
+            #     break
 
 
         # print('Now land')
