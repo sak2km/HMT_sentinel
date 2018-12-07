@@ -36,7 +36,7 @@ root2 = Tk()
 root2.title("Sentinel Panel")
 app2 = msg_window2(master=root2)
 # app.button_handler2()
-app2.configure(bg='gray90')
+app2.configure(bg='#00274d')
 app2.entry_update()
 
 app2.mainloop()

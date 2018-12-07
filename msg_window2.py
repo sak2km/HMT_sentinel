@@ -96,23 +96,23 @@ class msg_window2(Frame):
         # self.txt_function.configure(text=self.function)
         self.txt_mission.configure(text=self.mission)
         if float(self.battery) > 70:
-          self.txt_battery = Label(self.frame_time_battery, bg='green', bd=0, width=15, height=5)
+          self.txt_battery = Label(self.frame_time_battery, fg='#00ff00',bg='#001a33', width=15, height=5)
           self.txt_battery.grid(row=0, column=1, pady=0)
         elif float(self.battery) <= 70:
-          self.txt_battery = Label(self.frame_time_battery, bg='yellow', bd=0, width=15, height=5)
+          self.txt_battery = Label(self.frame_time_battery, fg='#ffff00',bg='#001a33', width=15, height=5)
           self.txt_battery.grid(row=0, column=1, pady=0)
         elif float(self.battery) <= 50:
-          self.txt_battery = Label(self.frame_time_battery, bg='orange', bd=0, width=15, height=5)
+          self.txt_battery = Label(self.frame_time_battery, fg='#ffa500',bg='#001a33', width=15, height=5)
           self.txt_battery.grid(row=0, column=1, pady=0)
         elif float(self.battery) <= 20:
-          self.txt_battery = Label(self.frame_time_battery, bg='red', bd=0, width=15, height=5)
+          self.txt_battery = Label(self.frame_time_battery, fg='#ff0000',bg='#001a33', width=15, height=5)
           self.txt_battery.grid(row=0, column=1, pady=0)
 
 
-        self.txt_battery.configure(text=self.battery)
+        self.txt_battery.configure(text=self.battery, font='Helvetica 16 bold')
         self.txt_1.configure(text=self.damage_info)
         self.flight_time = str(datetime.timedelta(seconds=self.flight_time_sec))
-        self.txt_time.configure(text=self.flight_time[0:10])
+        self.txt_time.configure(text=self.flight_time[0:10], fg='#ffffff',)
 
         # print("self.attacked_popup_flag: %s, self.attacked: %s,  self.attacked_popup: %s"%(self.attacked_popup_flag, self.attacked, self.attacked_popup))
 
@@ -213,15 +213,15 @@ class msg_window2(Frame):
         self.time_second_popup = '0'
 
         # create all of the main containers
-        self.frame1 = Frame(self, bg='gray', highlightbackground="gray", highlightthickness=5, width=55, height=50, pady=5)
-        self.frame2 = Frame(self, bg='gray', highlightbackground="gray", highlightthickness=5, width=55, height=150, pady=5)
-        self.frame3 = Frame(self, bg='gray90', highlightbackground="gray90", highlightthickness=5, width=55, height=50, pady=5)
+        self.frame1 = Frame(self, bg='#001a33', highlightbackground="#001a33", highlightthickness=5, width=55, height=50, pady=5)
+        self.frame2 = Frame(self, bg='#001a33', highlightbackground="#001a33", highlightthickness=5, width=55, height=150, pady=5)
+        self.frame3 = Frame(self, bg='#00274d', highlightbackground="#00274d", highlightthickness=5, width=55, height=50, pady=5)
         # self.frame3 = Frame(self, bg='gray', highlightbackground="gray90", highlightthickness=5, width=300, height=150, pady=5)
         # self.frame4 = Frame(self, bg='gray', highlightbackground="gray90", highlightthickness=5, width=300, height=150, pady=5)
         # self.frame5 = Frame(self, bg='gray', highlightbackground="gray90", highlightthickness=5, width=300, height=150, pady=5)
         # self.frame6 = Frame(self, bg='gray90', highlightbackground="gray90", highlightthickness=5,  width=300, height=150, pady=5)
-        self.frame_time_battery = Frame(self, bg='gray', width=55, height=10)
-        self.frame_mission = Frame(self, bg='gray', width=55, height=10 )
+        self.frame_time_battery = Frame(self, bg='#001a33', width=55, height=10)
+        self.frame_mission = Frame(self, bg='#001a33', width=55, height=10 )
         # self.frame_battery = Frame(self, bg='white', width=300, height=10, pady=3)
         # self.frame_time = Frame(self, bg='white', width=300, height=10, pady=3)
 
@@ -242,17 +242,17 @@ class msg_window2(Frame):
         # self.frame_time.grid(row=4, column=1)
 
 
-        self.label_forceland = Label(self.frame1,anchor=W,justify="left", bg='gray',width=40,text="Damage on: ", font='Helvetica 16 bold')
+        self.label_forceland = Label(self.frame1,anchor=W,justify="left", fg='#ffffff',bg='#001a33',width=40,text="Damage on: ", font='Helvetica 16 bold')
         self.label_forceland.grid(row=0, column=0)
-        self.label_statistics = Label(self.frame2, anchor=W, width=40, justify="left", bg='gray',text="Previously Reported Cyber-attacks:", font='Helvetica 21')
+        self.label_statistics = Label(self.frame2, anchor=W, width=40, justify="left", fg='#ffffff',bg='#001a33',text="Previously Reported Cyber-attacks:", font='Helvetica 21')
         self.label_statistics.grid(row=0, column=0)
         # self.label_original = Label(self.frame3, bg='gray',text="Original Plan", font='Helvetica 14 bold').grid(row=0, column=0)
         # self.label_alternative = Label(self.frame4, bg='gray',text="Alternative Plan", font='Helvetica 14 bold').grid(row=0, column=0)
         # self.label_home = Label(self.frame5, bg='gray',text="Return to Base", font='Helvetica 14 bold').grid(row=0, column=0)
         # self.label_function = Label(self.frame_time_battery, bg='gray', text="Function", font='Helvetica 14 bold').grid(row=0, column=0)
-        self.label_mission = Label(self.frame_mission, bg='gray', text="Mission Completion", font='Helvetica 14 bold').grid(row=0, column=0)
-        self.label_battery = Label(self.frame_time_battery, bg='gray', text="Battery", font='Helvetica 14 bold').grid(row=0, column=0)
-        self.label_time = Label(self.frame_time_battery, bg='gray', text="Flight Time", font='Helvetica 14 bold').grid(row=1, column=0)
+        self.label_mission = Label(self.frame_mission, bg='#001a33', text="Mission Completion", fg='#ffffff',font='Helvetica 14 bold').grid(row=0, column=0)
+        self.label_battery = Label(self.frame_time_battery, bg='#001a33', text="Battery", fg='#ffffff', font='Helvetica 14 bold').grid(row=0, column=0)
+        self.label_time = Label(self.frame_time_battery, bg='#001a33', text="Flight Time", fg='#ffffff',font='Helvetica 14 bold').grid(row=1, column=0)
 
         # ttk.Style().configure("RB.TButton", foreground='red', background='red')
         # self.button_1 = ttk.Button(self.frame1, text="Applyyy", style="RB.TButton", command= lambda: self.button_handler(0))
@@ -266,16 +266,16 @@ class msg_window2(Frame):
 
         # v = StringVar()
 
-        self.txt_1 = Label(self.frame1, anchor=W, justify="left", borderwidth=0,bg='gray', font='Helvetica 14 bold', bd=0, width=45, height=2)
-        self.txt_2 = Label(self.frame2, anchor=W, justify="left", borderwidth=0,bg='gray', bd=0, width=45, height=7,fg="#414141", font='Helvetica 14')
-        self.txt_3 = Label(self.frame3, anchor=W, justify="left", borderwidth=0,bg='gray90', bd=0, width=55,fg="red", font='Helvetica 14')
+        self.txt_1 = Label(self.frame1, anchor=W, justify="left", borderwidth=0,bg='#001a33',fg='#ffffff',font='Helvetica 14 bold', bd=0, width=45, height=2)
+        self.txt_2 = Label(self.frame2, anchor=W, justify="left", borderwidth=0,bg='#001a33', bd=0, width=45, height=7,fg="#ffffff", font='Helvetica 14')
+        self.txt_3 = Label(self.frame3, anchor=W, justify="left", borderwidth=0,bg='#00274d', bd=0, width=55,fg="red", font='Helvetica 14')
         # self.txt_3 = Label(self.frame3, borderwidth=0,bg='gray', bd=0, width=40, height=5)
         # self.txt_4 = Label(self.frame4, borderwidth=0, bg='gray', bd=0, width=40, height=5)
         # self.txt_5 = Label(self.frame5, borderwidth=0,bg='gray', bd=0, width=45, height=5)
         # self.txt_function = Label(self.frame_function_battery, bg='gray', bd=0, width=15, height=5)
-        self.txt_mission = Label(self.frame_mission, bg='gray', bd=0, width=15, height=5)
-        self.txt_battery = Label(self.frame_time_battery, bg='gray', bd=0, width=15, height=5)
-        self.txt_time = Label(self.frame_time_battery, bg='gray', bd=0, width=15, height=5)
+        self.txt_mission = Label(self.frame_mission, bg='#001a33', fg='#ffffff',bd=0, width=15, height=5)
+        self.txt_battery = Label(self.frame_time_battery, bg='#001a33',bd=0, width=15, height=5)
+        self.txt_time = Label(self.frame_time_battery, bg='#001a33', fg='#ffffff',bd=0, width=15, height=5)
 
         self.txt_1.grid(row=1, columnspan=2, pady=0)
         self.txt_2.grid(row=1, columnspan=2, pady=0)
@@ -304,7 +304,7 @@ class msg_window2(Frame):
         # self.txt_3.insert(INSERT,msg3)
         # v.set(msg4)
         self.txt_1.configure(text=msg1)
-        self.txt_2.configure(text=msg2)
+        self.txt_2.configure(text=msg2, fg='#ffffff',)
         # self.txt_3.configure(text="Control system reconfigured. Trajectories updated automatically.")
         # self.txt_3.configure(text=msg3)
         # self.txt_4.configure(text=msg4)
