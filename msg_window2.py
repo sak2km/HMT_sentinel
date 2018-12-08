@@ -61,11 +61,11 @@ class msg_window2(Frame):
       if self.recovery_options == 'NA':
         # self.label_statistics.lower(self.frame2)
         self.label_statistics.configure(text='Response options:')
-        self.txt_2.configure(text='Not available.',fg="#414141", font='Helvetica 14')
+        self.txt_2.configure(text='Not available.',fg="#ffffff", font='Helvetica 14')
       else:
         self.label_statistics.configure(text='Response options:')
         # print(self.recovery_options)
-        self.txt_2.configure(text=self.recovery_options, fg="#414141", font='Helvetica 14')
+        self.txt_2.configure(text=self.recovery_options, fg="#ffffff", font='Helvetica 14')
 
     def read_attack_popup(self):
       # if popup_opened == 1, attack window have opened
@@ -95,19 +95,18 @@ class msg_window2(Frame):
 
         # self.txt_function.configure(text=self.function)
         self.txt_mission.configure(text=self.mission)
-        if float(self.battery) > 70:
+        if float(self.battery) > 70: # green
           self.txt_battery = Label(self.frame_time_battery, fg='#00ff00',bg='#001a33', width=15, height=5)
           self.txt_battery.grid(row=0, column=1, pady=0)
-        elif float(self.battery) <= 70:
-          self.txt_battery = Label(self.frame_time_battery, fg='#ffff00',bg='#001a33', width=15, height=5)
-          self.txt_battery.grid(row=0, column=1, pady=0)
-        elif float(self.battery) <= 50:
-          self.txt_battery = Label(self.frame_time_battery, fg='#ffa500',bg='#001a33', width=15, height=5)
-          self.txt_battery.grid(row=0, column=1, pady=0)
-        elif float(self.battery) <= 20:
+        elif float(self.battery) <= 20: # red
           self.txt_battery = Label(self.frame_time_battery, fg='#ff0000',bg='#001a33', width=15, height=5)
           self.txt_battery.grid(row=0, column=1, pady=0)
-
+        elif float(self.battery) <= 50: # yellow
+          self.txt_battery = Label(self.frame_time_battery, fg='#ffa500',bg='#001a33', width=15, height=5)
+          self.txt_battery.grid(row=0, column=1, pady=0)
+        elif float(self.battery) <= 70: # orange
+          self.txt_battery = Label(self.frame_time_battery, fg='#ffff00',bg='#001a33', width=15, height=5)
+          self.txt_battery.grid(row=0, column=1, pady=0)
 
         self.txt_battery.configure(text=self.battery, font='Helvetica 16 bold')
         self.txt_1.configure(text=self.damage_info)
@@ -129,7 +128,7 @@ class msg_window2(Frame):
             self.label_forceland.configure(text="Damage on: Guidance module (Drone A).", font='Helvetica 16 bold')
           elif self.damage_type == 'other':
             self.label_forceland.configure(text="Damage on: Other modules (Drone A).", font='Helvetica 16 bold')
-          elif self.damage_type == 'glabal':
+          elif self.damage_type == 'global':
             self.label_forceland.configure(text="Damage on: Navigation, Guidance, and other modules (Drone A).", font='Helvetica 16 bold')
           elif self.damage_type == 'local':
             self.label_forceland.configure(text="Damage on: Navigation module (Drone A).", font='Helvetica 16 bold')
@@ -140,8 +139,8 @@ class msg_window2(Frame):
             self.txt_2.configure(text='')
           else:
             history_stat_str = self.history_stat.replace(".", ".\n")
-            self.label_statistics.configure(text='Previous Statistics:')
-            self.txt_2.configure(text=history_stat_str,fg="#414141", font='Helvetica 14')
+            self.label_statistics.configure(text='Previously Reported Cyber-attacks:')
+            self.txt_2.configure(text=history_stat_str,fg="#ffffff", font='Helvetica 14')
 
           # Popup warning message an attack has occured
           if tkMessageBox.showinfo("Message", "A Cyber attack detected!!!"):
@@ -179,8 +178,8 @@ class msg_window2(Frame):
         elif not self.attacked and not self.attacked_popup:
           # No attack
           self.label_forceland.configure(text="Damage on: ", font='Helvetica 16 bold')
-          self.label_statistics.configure(text='Previous Statistics:')
-          self.txt_2.configure(text="Not available",fg="#414141", font='Helvetica 14')
+          self.label_statistics.configure(text='Previously Reported Cyber-attacks:')
+          self.txt_2.configure(text="Not available",fg="#ffffff", font='Helvetica 14')
 
 
 

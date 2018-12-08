@@ -1,23 +1,34 @@
+#####Installation instruction
+
+pip install dronekit-sitl
 pip install mavproxy
 pip install dronekit
-pip install dronekit-sitl
+
+####################################
+
+# Move to directory
+cd Documents/sentinel
+
+# Open 4 tabs
+# Tabs 1,2,3 you only need to run once. Keep it running. 
+# For multiple experiments, you run #4's command with different experiment parameters.
 
 
-(install UGCS)
 
-
-4 tabs
-
-Start SITL
+#Tab #1: Start SITL and UGCS
+cd Documents/sentinel
+ugcs-client
 dronekit-sitl copter --home=46.7628208,8.3289585,0,180
 
 
-Start Mavproxy
-mavproxy.py --master tcp:127.0.0.1:5760 --sitl 127.0.0.1:5501 --out 127.0.0.1:14550 --out 127.0.0.1:14551 --out 172.29.0.18:15667
+#Tab #2: Start Mavproxy
+cd Documents/sentinel
+mavproxy.py --master tcp:127.0.0.1:5760 --out 127.0.0.1:14550 --out 127.0.0.1:14551
 
-Sentinel panel
+#Tab #3: Sentinel panel
+cd Documents/sentinel
 python scripts/app2.py
 
-
-Simulation
+#Tab #4: Start Simulation
+cd Documents/sentinel
 python scripts/sentinel2.py --connect udp:127.0.0.1:14551 --scenario_num 5 --flight_pattern 2

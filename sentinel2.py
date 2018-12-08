@@ -73,7 +73,7 @@ class Sentinel():
         self.initial_progress = 0
         self.damage_type = 'nav' # navigation, guidance, global (guidance + control), or other
         # Starting point of the searching area. different from home
-        self.starting_loc = LocationGlobal(35.9836983,-95.8752409, 20)
+        self.starting_loc = LocationGlobal(35.9836983,-95.8752409, 40)
 
 
         # if self.scenario_num==2 or self.scenario_num==3 or self.scenario_num==3 or self.scenario_num==3 or \
@@ -347,19 +347,19 @@ class Sentinel():
         # Starting point of the searching area. different from home
         # Different home location for whether mission area is open
         if self.home_near and self.area_open:
-            self.starting_loc = LocationGlobal(46.7651764,8.3240687, 20)       
+            self.starting_loc = LocationGlobal(46.7651764,8.3240687, 40)       
             # self.starting_loc = LocationGlobal(35.9836983,-95.8752409, 10)
 
         elif self.home_near and not self.area_open:
-            self.starting_loc = LocationGlobal(46.7633352,8.3325871, 20)
+            self.starting_loc = LocationGlobal(46.7633352,8.3325871, 40)
             # self.starting_loc = LocationGlobal(35.9836983,-95.8752409, 10)
 
         elif not self.home_near and self.area_open:
-            self.starting_loc = LocationGlobal(46.7619141,8.3184276, 20)
+            self.starting_loc = LocationGlobal(46.7619141,8.3184276, 40)
             # self.starting_loc = LocationGlobal(35.9856183,-95.8752409, 10)
 
         elif not self.home_near and not self.area_open:
-            self.starting_loc = LocationGlobal(46.7633352,8.3325871, 20)
+            self.starting_loc = LocationGlobal(46.7633352,8.3325871, 40)
             # self.starting_loc = LocationGlobal(35.9856183,-95.8752409, 10)
 
         # set current battery same as initial level
@@ -550,7 +550,7 @@ class Sentinel():
         # Add new commands. The meaning/order of the parameters is documented in the Command class. 
          
         #Add MAV_CMD_NAV_TAKEOFF command. This is ignored if the vehicle is already in the air.
-        cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, 0, 0, 0, 0, 0, 0, 0, 0, 10))
+        cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, 0, 0, 0, 0, 0, 0, 0, 0, 40))
 
         #Define the four MAV_CMD_NAV_WAYPOINT locations and add the commands
         # to north, to east
@@ -565,16 +565,16 @@ class Sentinel():
 
             # Move upward/downward
             point1 = self.get_location_metres(aLocation, current_lat, width_covered)
-            cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point1.lat, point1.lon, 20))
-            self.missions.append(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point1.lat, point1.lon, 20))
+            cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point1.lat, point1.lon, 40))
+            self.missions.append(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point1.lat, point1.lon, 40))
 
             width_covered+=step_size
             stroke_num+=1
 
             # move to East
             point2 = self.get_location_metres(aLocation, current_lat, width_covered)
-            cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point2.lat, point2.lon, 20))
-            self.missions.append(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point2.lat, point2.lon, 20))
+            cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point2.lat, point2.lon, 40))
+            self.missions.append(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point2.lat, point2.lon, 40))
 
             # width_covered+=5
         print(" Upload new commands to vehicle")
@@ -598,7 +598,7 @@ class Sentinel():
         # Add new commands. The meaning/order of the parameters is documented in the Command class. 
          
         #Add MAV_CMD_NAV_TAKEOFF command. This is ignored if the vehicle is already in the air.
-        cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, 0, 0, 0, 0, 0, 0, 0, 0, 20))
+        cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, 0, 0, 0, 0, 0, 0, 0, 0, 40))
 
         #Define the four MAV_CMD_NAV_WAYPOINT locations and add the commands
         # to north, to east
@@ -616,8 +616,8 @@ class Sentinel():
 
             # move to East
             point2 = self.get_location_metres(aLocation, current_lat, width_covered)
-            cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point2.lat, point2.lon, 11))
-            self.missions.append(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point2.lat, point2.lon, 11))
+            cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point2.lat, point2.lon, 40))
+            self.missions.append(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point2.lat, point2.lon, 40))
 
             # width_covered+=5
         print(" Upload new commands to vehicle")
@@ -697,7 +697,7 @@ class Sentinel():
 
         # cmds.add(missionlist[0])
 
-        cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, 0, 0, 0, 0, 0, 0, 0, 0, 10))
+        cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, 0, 0, 0, 0, 0, 0, 0, 0, 40))
         # cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, hacked_waypoint.lat, hacked_waypoint.lon, 14))
         # cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, hacked_waypoint.lat, hacked_waypoint.lon, 14))
         cmds.add(hacked_command)
@@ -1169,7 +1169,7 @@ class Sentinel():
         self.attacked = True
         print('Cyper attack point is reached!!!!')
         nextwaypoint = self.vehicle.commands.next
-        hacked_command = Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, 46.7620279, 8.3316487, 11)
+        hacked_command = Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, 46.7620279, 8.3316487, 30)
         # hacked_waypoint = self.get_location_metres(self.home_location, -45, -45)
 
         self.add_new_mission(nextwaypoint, hacked_command)
@@ -1234,14 +1234,14 @@ class Sentinel():
 
 
 
-        self.save_mission(self.alternate_mission_filename)
+        # self.save_mission(self.alternate_mission_filename)
 
 
         self.home_location = self.vehicle.location.global_frame
 
 
         # From Copter 3.3 you will be able to take off using a mission item. Plane must take off using a mission item (currently).
-        self.arm_and_takeoff(10)
+        self.arm_and_takeoff(40)
 
         ### Trigger threaded parameter save function for sentinel panel display ###
 
