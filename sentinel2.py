@@ -9,6 +9,7 @@ import os
 #Set up option parsing to get connection string
 import argparse 
 import time
+import datetime
 import random
 
 
@@ -95,7 +96,7 @@ class Sentinel():
             self.area_open = True
             self.home_near = True
             self.target_dense = True
-            self.initial_progress = 30 # to bring up mission_progress %. Assume 30 waypoints already completed
+            self.initial_progress = 20 # to bring up mission_progress %. Assume 30 waypoints already completed
             self.history = False
             self.damage_type = 'nav'
             self.attack = True
@@ -183,7 +184,7 @@ class Sentinel():
             self.area_open = True
             self.home_near = False
             self.target_dense = True
-            self.initial_progress = 30 # to bring up mission_progress %. Assume 30 waypoints already completed
+            self.initial_progress = 20 # to bring up mission_progress %. Assume 30 waypoints already completed
             self.history = True
             self.damage_type = 'global'
             self.attack = True
@@ -205,7 +206,7 @@ class Sentinel():
             self.area_open = True
             self.home_near = True
             self.target_dense = False
-            self.initial_progress = 30
+            self.initial_progress = 20
             self.history = False
             self.damage_type = 'global'
             self.attack = False
@@ -227,7 +228,7 @@ class Sentinel():
             self.area_open = False
             self.home_near = True
             self.target_dense = True
-            self.initial_progress = 30 # to bring up mission_progress %. Assume 30 waypoints already completed
+            self.initial_progress = 20 # to bring up mission_progress %. Assume 30 waypoints already completed
             self.history = True
             self.damage_type = 'global'
             self.attack = False
@@ -248,7 +249,7 @@ class Sentinel():
             self.area_open = False
             self.home_near = False
             self.target_dense = False
-            self.initial_progress = 30 # to bring up mission_progress %. Assume 30 waypoints already completed
+            self.initial_progress = 20 # to bring up mission_progress %. Assume 30 waypoints already completed
             self.history = False
             self.damage_type = 'guidance'
             self.attack = True
@@ -311,7 +312,7 @@ class Sentinel():
             self.area_open = False
             self.home_near = False
             self.target_dense = False
-            self.initial_progress = 30 # to bring up mission_progress %. Assume 30 waypoints already completed
+            self.initial_progress = 20 # to bring up mission_progress %. Assume 30 waypoints already completed
             self.history = True
             self.damage_type = 'other'
             self.attack = False
@@ -347,19 +348,29 @@ class Sentinel():
         # Starting point of the searching area. different from home
         # Different home location for whether mission area is open
         if self.home_near and self.area_open:
-            self.starting_loc = LocationGlobal(46.7651764,8.3240687, 40)       
-            # self.starting_loc = LocationGlobal(35.9836983,-95.8752409, 10)
-
-        elif self.home_near and not self.area_open:
-            self.starting_loc = LocationGlobal(46.7633352,8.3325871, 40)
+            self.starting_loc = LocationGlobal(46.7646888,8.3270422, 40) 
+            # self.starting_loc = LocationGlobal(46.7651764,8.3240687, 40)    
             # self.starting_loc = LocationGlobal(35.9836983,-95.8752409, 10)
 
         elif not self.home_near and self.area_open:
-            self.starting_loc = LocationGlobal(46.7619141,8.3184276, 40)
+            self.starting_loc = LocationGlobal(46.7651764,8.3240687, 40) 
+            # self.starting_loc = LocationGlobal(46.7619141,8.3184276, 40)
             # self.starting_loc = LocationGlobal(35.9856183,-95.8752409, 10)
 
+
+        #### Shielded Area ####
+        elif self.home_near and not self.area_open:
+            self.starting_loc = LocationGlobal(46.7637210,8.3322712, 40)
+            # self.starting_loc = LocationGlobal(46.7633352,8.3325871, 40)
+            # self.starting_loc = LocationGlobal(35.9836983,-95.8752409, 10)
+
         elif not self.home_near and not self.area_open:
-            self.starting_loc = LocationGlobal(46.7633352,8.3325871, 40)
+            if self.num_uav == 1 :
+                self.starting_loc = LocationGlobal(46.7638418,8.3334162, 40)
+            if self.num_uav == 2 :
+                self.starting_loc = LocationGlobal(46.7638658,8.3339866, 40)
+
+            # self.starting_loc = LocationGlobal(46.7633352,8.3325871, 40)
             # self.starting_loc = LocationGlobal(35.9856183,-95.8752409, 10)
 
         # set current battery same as initial level
@@ -376,12 +387,18 @@ class Sentinel():
 
         # Connect to the Vehicle
         print('Connecting to vehicle on: %s' % self.connection_string)
-        self.vehicle = connect(self.connection_string, wait_ready=True)
+        self.vehicle = connect(self.connection_string, wait_ready=False)
+        self.vehicle.wait_ready(True, timeout=300)
         self.button_counter = "0" # iteration in which last button clicked occured.
         self.flag_param_save = True     # a flag to keep having parameter txt file updated. Will be set False when misison ends
         self.sentinel_msg = "sentinel message 0"
         self.attacked = False
         self.attacked_popup = False
+
+        if not os.path.exists("scripts/trajectory_log"):
+            os.makedirs("scripts/trajectory_log")
+
+        self.log_title =  "scripts/trajectory_log/log_scen"+str(self.scenario_num)+"_flight"+str(self.flight_pattern)+".txt"
 
 
         # notify Sentinel that the popup window has not been opend. 
@@ -432,7 +449,7 @@ class Sentinel():
         """
         nextwaypoint = self.vehicle.commands.next
          # or nextwaypoint > len(self.vehicle.commands)-1
-        if nextwaypoint==0:
+        if nextwaypoint==0 or len(self.vehicle.commands) < nextwaypoint:
             return None
         missionitem=self.vehicle.commands[nextwaypoint-1] # commands are zero indexed
         lat = missionitem.x
@@ -557,6 +574,10 @@ class Sentinel():
         width_covered = 0
         stroke_num = 0
 
+        point0 = self.get_location_metres(aLocation, 0, 0)
+        cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point0.lat, point0.lon, 40))
+        self.missions.append(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point0.lat, point0.lon, 40))
+
         while width_covered < area_width :
             if stroke_num%2 == 0: # downward stroke
                 current_lat = -area_height
@@ -599,6 +620,10 @@ class Sentinel():
          
         #Add MAV_CMD_NAV_TAKEOFF command. This is ignored if the vehicle is already in the air.
         cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_TAKEOFF, 0, 0, 0, 0, 0, 0, 0, 0, 40))
+
+        point0 = self.get_location_metres(aLocation, 0, 0)
+        cmds.add(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point0.lat, point0.lon, 40))
+        self.missions.append(Command( 0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, point0.lat, point0.lon, 40))
 
         #Define the four MAV_CMD_NAV_WAYPOINT locations and add the commands
         # to north, to east
@@ -669,7 +694,7 @@ class Sentinel():
 
         cmds = self.vehicle.commands
         cmds.download()
-        cmds.wait_ready()
+        # cmds.wait_ready()
 
         # Save the vehicle commands to a list
         missionlist=[]
@@ -805,10 +830,13 @@ class Sentinel():
 
     def save_parameters(self,aFileName):
 
-        output='function battery mission flight_time attacked_popup attacked damage_type history_stat popup_flag_now \n'
+        output='function battery mission flight_time attacked_popup attacked damage_type history_stat popup_flag_now log_title\n'
         #Add home location as 0th waypoint
         # home = vehicle.home_location
-        time_elpased = round(time.time() - self.time_start,2)
+        time_elpased_sec = round(time.time() - self.time_start,2)
+
+
+        time_elpased= str(datetime.timedelta(seconds=time_elpased_sec))[0:10]
 
 
         # self.txt_function.configure(text=self.function)
@@ -832,7 +860,11 @@ class Sentinel():
         # seconds_elapsed = sum(x * int(t) for x, t in zip([3600, 60, 1], time_elpased.split(":"))) 
         # 80 % battery used over : 15 min * 60 sec = 0.088
         # print('time_elpased : %s, battery_current: %s' %(time_elpased,self.battery_current ))
-        self.battery_current = self.battery_initial - (0.088*time_elpased)
+        if self.home_near :
+            self.battery_current = self.battery_initial - (0.088*time_elpased_sec)
+        else :
+            self.battery_current = self.battery_initial - (0.17*time_elpased_sec)
+
         battery =  str(round(self.battery_current,2))
         # battery =  str(round(self.vehicle.battery.level))
         history_stat = "NA"
@@ -847,9 +879,9 @@ class Sentinel():
             elif self.damage_type == 'other':
                 history_stat = "Annual frequency: 10 occurences per year.Rate of immediate re-attack: 45%.Overall System Damage: 80%.Damage Breakdown: Navigation 50%, Guidance 10%"
             elif self.damage_type == 'global':
-                history_stat = "Annual frequency: 15 occurences per year.Rate of immediate re-attack: 15%.Overall System Damage: 80%.Damage Breakdown: Navigation 50%, Guidance 10%"
+                history_stat = "Annual frequency: 5 occurences per year.Rate of immediate re-attack: 15%.Overall System Damage: 80%.Damage Breakdown: Navigation 50%, Guidance 10%"
 
-        output+="%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (function, battery, mission_progress_str ,time_elpased, self.attacked_popup, self.attacked, self.damage_type, history_stat)
+        output+="%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (function, battery, mission_progress_str ,time_elpased, self.attacked_popup, self.attacked, self.damage_type, history_stat, self.log_title)
         with open(aFileName, 'w') as file_:
             # print " Write mission to file"
             file_.write(output)
@@ -919,7 +951,7 @@ class Sentinel():
         # with open("scripts/trajectory_log.txt", "w+") as file_:
         #     file_.write(header)
 
-        # with open('scripts/trajectory_log.txt', 'w+') as file_:
+        # with open(self.log_title, 'w+') as file_:
         #     for i, line in enumerate(file_):
         #         if i==0 and not line.startswith('time lon lat speed battery waypoint attack'):
         #             pdb.set_trace()
@@ -927,13 +959,13 @@ class Sentinel():
         #             break
         #         break
         if self.first_save:
-            with open('scripts/trajectory_log.txt', 'w+') as file_:
+            with open(self.log_title, 'w+') as file_:
                 file_.write(header)
 
         self.first_save = False
 
 
-        with open("scripts/trajectory_log.txt", "a+") as file_:
+        with open(self.log_title, "a+") as file_:
             file_.write(output)
 
 
@@ -1137,7 +1169,7 @@ class Sentinel():
 
         random_num = random.random()
         if random_num < 0.2:
-            self.sentinel_msg = "Cyber attack triggered !"
+            self.sentinel_msg = "Cyber attack point reached. Attack may occur from now !"
             print(self.sentinel_msg)
             # record attack flag only when sentinel is supposed to alert, regardless of whether there is actual attack
             if popup:

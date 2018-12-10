@@ -1,2 +1,2 @@
 counter	popup_opened	time_clicked1	time_clicked2
-0	1	0:05:40.03	0:05:55.07
+0	1	0:02:35.99	0:02:50.57

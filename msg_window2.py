@@ -37,6 +37,12 @@ class msg_window2(Frame):
 
     def update_reconfig_msg(self):
         self.txt_3.configure(text="Control system reconfigured. Trajectories updated automatically.")
+
+
+        time_red_msg = str(self.flight_time[0:10])
+        if self.log_title:
+            with open(self.log_title, "a+") as file_:
+                file_.write("### red msg popped up at : "+ time_red_msg +"\n")
         # make it disappear after 3 sec
         self.after(5000, self.hide_reconfig_msg)
         
@@ -110,8 +116,9 @@ class msg_window2(Frame):
 
         self.txt_battery.configure(text=self.battery, font='Helvetica 16 bold')
         self.txt_1.configure(text=self.damage_info)
-        self.flight_time = str(datetime.timedelta(seconds=self.flight_time_sec))
-        self.txt_time.configure(text=self.flight_time[0:10], fg='#ffffff',)
+        # self.flight_time = str(datetime.timedelta(seconds=self.flight_time_sec))
+        self.flight_time = str(self.flight_time_sec)
+        self.txt_time.configure(text=self.flight_time[0:10], fg='#ffffff')
 
         # print("self.attacked_popup_flag: %s, self.attacked: %s,  self.attacked_popup: %s"%(self.attacked_popup_flag, self.attacked, self.attacked_popup))
 
@@ -129,7 +136,7 @@ class msg_window2(Frame):
           elif self.damage_type == 'other':
             self.label_forceland.configure(text="Damage on: Other modules (Drone A).", font='Helvetica 16 bold')
           elif self.damage_type == 'global':
-            self.label_forceland.configure(text="Damage on: Navigation, Guidance, and other modules (Drone A).", font='Helvetica 16 bold')
+            self.label_forceland.configure(text="Damage on: Guidance and Control modules (Drone A).", font='Helvetica 16 bold')
           elif self.damage_type == 'local':
             self.label_forceland.configure(text="Damage on: Navigation module (Drone A).", font='Helvetica 16 bold')
 
@@ -428,6 +435,7 @@ class msg_window2(Frame):
 
     def read_parameters(self):
         # missionlist=[]
+        self.log_title = ""
         with open("scripts/parameters.txt") as f:
             for i, line in enumerate(f):
                 if i==0:
@@ -438,11 +446,13 @@ class msg_window2(Frame):
                     self.function=str(linearray[0])
                     self.battery=str(linearray[1])
                     self.mission=str(linearray[2])
-                    self.flight_time_sec=round(float(linearray[3]),2)
+                    self.flight_time_sec=str(linearray[3])
                     attacked_pop_str = str(linearray[4])
                     attacked_str = str(linearray[5])
                     self.damage_type = str(linearray[6])
                     self.history_stat=str(linearray[7])
+                    if len(linearray) > 8:
+                        self.log_title=str(linearray[8])
                     self.damage_info = ''
 
                     if attacked_pop_str == 'True':
